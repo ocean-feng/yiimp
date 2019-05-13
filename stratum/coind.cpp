@@ -132,9 +132,16 @@ bool coind_validate_address(YAAMP_COIND *coind)
 	bool isvalid = getaddressinfo || json_get_bool(json_result, "isvalid");
 	if(!isvalid) stratumlog("%s wallet %s is not valid.\n", coind->name, coind->wallet);
 
+	// modify by ocean feng
+	// Disable check wallet is mine
+#if 0
 	bool ismine = json_get_bool(json_result, "ismine");
 	if(!ismine) stratumlog("%s wallet %s is not mine.\n", coind->name, coind->wallet);
 	else isvalid = ismine;
+#else
+	bool ismine = true;
+#endif
+	// end modify
 
 	const char *p = json_get_string(json_result, "pubkey");
 	strcpy(coind->pubkey, p ? p : "");
