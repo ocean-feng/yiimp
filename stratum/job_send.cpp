@@ -15,8 +15,9 @@ int job_get_jobid()
 static void job_mining_notify_buffer(YAAMP_JOB *job, char *buffer)
 {
 	YAAMP_JOB_TEMPLATE *templ = job->templ;
+    YAAMP_COIND *coind = job->coind;
 
-	if (!strcmp(g_stratum_algo, "lbry")) {
+    if (!strcmp(g_stratum_algo, "lbry")) {
 		sprintf(buffer, "{\"id\":null,\"method\":\"mining.notify\",\"params\":["
 			"\"%x\",\"%s\",\"%s\",\"%s\",\"%s\",[%s],\"%s\",\"%s\",\"%s\",true]}\n",
 			job->id, templ->prevhash_be, templ->claim_be, templ->coinb1, templ->coinb2,
@@ -29,6 +30,13 @@ static void job_mining_notify_buffer(YAAMP_JOB *job, char *buffer)
 			job->id, templ->prevhash_be, templ->extradata_be, templ->coinb1, templ->coinb2,
 			templ->txmerkles, templ->version, templ->nbits, templ->ntime);
 		return;
+	}else if (!strcmp(coind->symbol, "VEIL")){
+        sprintf(buffer, "{\"id\":null,\"method\":\"mining.notify\",\"params\":["
+                        "\"%x\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",[%s],\"%s\",\"%s\",\"%s\",true]}\n",
+                job->id, templ->prevhash_be, templ->veil_accum10, templ->veil_accum100, templ->veil_accum1000, templ->veil_accum10000, templ->veil_pofn,
+                templ->coinb1, templ->coinb2, templ->txmerkles, templ->version, templ->nbits, templ->ntime);
+        // printf("%s\n",buffer);
+        return;
 	}
 
 	// standard stratum

@@ -17,6 +17,9 @@ struct YAAMP_JOB_VALUES
 	char hash_hex[1024];
 	char hash_be[1024];
 	unsigned char hash_bin[1024];
+
+	//VEIL
+    char veilblock[1024];
 };
 
 struct YAAMP_JOB_TEMPLATE
@@ -61,6 +64,15 @@ struct YAAMP_JOB_TEMPLATE
 
 	int auxs_size;
 	YAAMP_COIND_AUX *auxs[MAX_AUXS];
+
+
+	//Veil
+    char veil_accum10[128];
+    char veil_accum100[128];
+    char veil_accum1000[128];
+    char veil_accum10000[128];
+    char veil_pofn[128];
+    bool is_veil;
 };
 
 #define YAAMP_JOB_MAXSUBIDS		200

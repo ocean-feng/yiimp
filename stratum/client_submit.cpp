@@ -45,6 +45,61 @@ void build_submit_values(YAAMP_JOB_VALUES *submitvalues, YAAMP_JOB_TEMPLATE *tem
 		ser_string_be(submitvalues->header, submitvalues->header_be, 20);
 	}
 
+    char veildatahash[1024], veildatablk[1024];
+	if(templ->is_veil){
+        memset(veildatahash, 0, 1024);
+        memset(veildatablk, 0, 1024);
+
+        // veildata (for veildatahash)
+        char merklerootswap[65];
+        memset(merklerootswap,'\0',65);
+        string_be(merkleroot.c_str(),merklerootswap);
+        sprintf(veildatahash, "%s%s%s%s%s%s%s%s%s%s%s%s",merklerootswap,merklerootswap,"04","0a00000000000000",templ->veil_accum10,"6400000000000000",templ->veil_accum100,"e803000000000000",templ->veil_accum1000,"1027000000000000",templ->veil_accum10000,templ->veil_pofn);
+
+        // veildata (for block submission)
+        char accum10[65], accum100[65], accum1000[65], accum10000[65];
+        memset(accum10,'\0',65);
+        memset(accum100,'\0',65);
+        memset(accum1000,'\0',65);
+        memset(accum10000,'\0',65);
+        string_be(templ->veil_accum10,accum10);
+        string_be(templ->veil_accum100,accum100);
+        string_be(templ->veil_accum1000,accum1000);
+        string_be(templ->veil_accum10000,accum10000);
+        sprintf(veildatablk, "%s%s%s%s%s%s%s%s%s%s%s","04","0a00000000000000",accum10,"6400000000000000",accum100,"e803000000000000",accum1000,"1027000000000000",accum10000,merkleroot.c_str(),merkleroot.c_str());
+        memset(submitvalues->veilblock,'\0',1024);
+        memcpy(submitvalues->veilblock,veildatablk,strlen(veildatablk));
+
+        // str->bin
+        char veildatahash_bin[258];
+        memset(veildatahash_bin,0,258);
+        binlify((unsigned char*)veildatahash_bin, veildatahash);
+
+        // bin->sha256d
+        char veilshahash[65];
+        memset(veilshahash,0,65);
+        YAAMP_HASH_FUNCTION veildata_hash = sha256_double_hash_hex;
+        veildata_hash((char *)veildatahash_bin,veilshahash,257);
+
+        // sha256d->endian
+        char veilshahashswap[128];
+        memset(veilshahashswap,0,128);
+        string_be(veilshahash,veilshahashswap);
+
+        // endian->bitswap
+        char veilsha_be[128];
+        memset(veilsha_be,0,128);
+        ser_string_be(veilshahashswap,veilsha_be,8);
+
+        // build blockheader
+        sprintf(submitvalues->header, "%s%s%s%s%s%s", templ->version, templ->prevhash_be, veilsha_be, ntime, templ->nbits, nonce);
+        ser_string_be(submitvalues->header, submitvalues->header_be, 112/4);
+
+        // fProofOfStake & fProofOfFullNode
+        strcat(submitvalues->header_be,"0000");
+	}
+
+
 	binlify(submitvalues->header_bin, submitvalues->header_be);
 
 //	printf("%s\n", submitvalues->header_be);
@@ -235,6 +290,10 @@ static void client_do_submit(YAAMP_CLIENT *client, YAAMP_JOB *job, YAAMP_JOB_VAL
 		vector<string>::const_iterator i;
 		for(i = templ->txdata.begin(); i != templ->txdata.end(); ++i)
 			sprintf(block_hex+strlen(block_hex), "%s", (*i).c_str());
+
+        //append veildatahash
+        if(!strcmp(coind->symbol, "VEIL"))
+            sprintf(block_hex+strlen(block_hex), "%s", submitvalues->veilblock);
 
 		// POS coins need a zero byte appended to block, the daemon replaces it with the signature
 		if(coind->pos)

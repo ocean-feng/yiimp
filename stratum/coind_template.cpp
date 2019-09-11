@@ -364,6 +364,20 @@ YAAMP_JOB_TEMPLATE *coind_create_template(YAAMP_COIND *coind)
 		sprintf(templ->version, "%08x", nVersion);
 	}
 
+
+    if(!strcmp(coind->symbol, "VEIL")){
+        printf("veil****************************\n");
+        strcpy(templ->veil_pofn,json_get_string(json_result, "proofoffullnodehash"));
+        json_value *json_accumhashes = json_get_array(json_result, "accumulatorhashes");
+        if(json_accumhashes) {
+            strcpy(templ->veil_accum10,json_get_string(json_accumhashes,"10"));
+            strcpy(templ->veil_accum100,json_get_string(json_accumhashes,"100"));
+            strcpy(templ->veil_accum1000,json_get_string(json_accumhashes,"1000"));
+            strcpy(templ->veil_accum10000,json_get_string(json_accumhashes,"10000"));
+        }
+        templ->is_veil = true;
+    }else
+        templ->is_veil = false;
 //	debuglog("%s ntime %s\n", coind->symbol, templ->ntime);
 //	uint64_t target = decode_compact(json_get_string(json_result, "bits"));
 //	coind->difficulty = target_to_diff(target);
