@@ -103,12 +103,18 @@ void coinbase_create(YAAMP_COIND *coind, YAAMP_JOB_TEMPLATE *templ, json_value *
 		coinbase_aux(templ, script2);
 
 	int script_len = strlen(script1)/2 + strlen(script2)/2 + 8;
-	sprintf(templ->coinb1, "%s%s01"
+	if(!strcmp(coind->symbol, "VEIL"))
+		sprintf(templ->coinb1, "%s00000001"
+		"0000000000000000000000000000000000000000000000000000000000000000"
+		"ffffffff%02x%s", eversion1, script_len, script1);
+	else
+		sprintf(templ->coinb1, "%s%s01"
 		"0000000000000000000000000000000000000000000000000000000000000000"
 		"ffffffff%02x%s", eversion1, entime, script_len, script1);
 
 	sprintf(templ->coinb2, "%s00000000", script2);
-
+	if(!strcmp(coind->symbol, "VEIL"))
+		strcat(templ->coinb2, "01");
 	// segwit commitment, if needed
 	if (templ->has_segwit_txs)
 		sprintf(commitment, "0000000000000000%02x%s", (int) (strlen(coind->commitment)/2), coind->commitment);
@@ -694,8 +700,8 @@ void coinbase_create(YAAMP_COIND *coind, YAAMP_JOB_TEMPLATE *templ, json_value *
 
 	//if(coind->txmessage)
 	//	strcat(templ->coinb2, "00");
-
-	strcat(templ->coinb2, "00000000"); // locktime
+	if(strcmp(coind->symbol, "VEIL"))
+		strcat(templ->coinb2, "00000000"); // locktime
 
 	coind->reward = (double)available/100000000*coind->reward_mul;
 //	debuglog("coinbase %f\n", coind->reward);

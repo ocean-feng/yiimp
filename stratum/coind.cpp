@@ -3,9 +3,11 @@
 
 void coind_error(YAAMP_COIND *coind, const char *s)
 {
-	coind->auto_ready = false;
+	if(strcmp(coind->symbol, "VEIL")){
+		coind->auto_ready = false;
 
-	object_delete(coind);
+		object_delete(coind);
+	}
 	debuglog("%s error %s\n", coind->name, s);
 }
 

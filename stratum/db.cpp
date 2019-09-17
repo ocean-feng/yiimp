@@ -189,12 +189,17 @@ void db_update_coinds(YAAMP_DB *db)
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////
-
+	//TODO: work round for veil
+	/*db_query(db, "SELECT id, name, rpchost, rpcport, rpcuser, rpcpasswd, rpcencoding, master_wallet, reward, price, "
+		"hassubmitblock, txmessage, enable, auto_ready, algo, pool_ttf, charity_address, charity_amount, charity_percent, "
+		"reward_mul, symbol, auxpow, actual_ttf, network_ttf, usememorypool, hasmasternodes, algo, symbol2, "
+		"rpccurl, rpcssl, rpccert, account, multialgos, max_miners, max_shares, usesegwit "
+		"FROM coins WHERE enable AND auto_ready AND algo='%s' ORDER BY index_avg", g_stratum_algo*/
 	db_query(db, "SELECT id, name, rpchost, rpcport, rpcuser, rpcpasswd, rpcencoding, master_wallet, reward, price, "
 		"hassubmitblock, txmessage, enable, auto_ready, algo, pool_ttf, charity_address, charity_amount, charity_percent, "
 		"reward_mul, symbol, auxpow, actual_ttf, network_ttf, usememorypool, hasmasternodes, algo, symbol2, "
 		"rpccurl, rpcssl, rpccert, account, multialgos, max_miners, max_shares, usesegwit "
-		"FROM coins WHERE enable AND auto_ready AND algo='%s' ORDER BY index_avg", g_stratum_algo);
+		"FROM coins WHERE enable AND algo='%s' ORDER BY index_avg", g_stratum_algo);
 
 	MYSQL_RES *result = mysql_store_result(&db->mysql);
 	if(!result) yaamp_error("Cant query database");
@@ -274,7 +279,9 @@ void db_update_coinds(YAAMP_DB *db)
 		if(row[9]) coind->price = atof(row[9]);
 		if(row[11]) coind->txmessage = atoi(row[11]);
 		if(row[12]) coind->enable = atoi(row[12]);
-		if(row[13]) coind->auto_ready = atoi(row[13]);
+		coind->auto_ready = true;
+		// Work round for VEIL
+		//if(row[13]) coind->auto_ready = atoi(row[13]);
 		if(row[15]) coind->pool_ttf = atoi(row[15]);
 
 		if(row[16]) strcpy(coind->charity_address, row[16]);
